@@ -154,7 +154,7 @@ public class RNDatecsPrinterModule extends ReactContextBaseJavaModule implements
 			ArrayList list = new ArrayList();
 			String d = "1.0.0";
 			for(BluetoothDevice device : pairedDevices) {
-                if (device.getName().contains("DPP-250")) {
+                if (device.getName().contains("DPP-")) {
     				list.add(device);
                 } else {
                     d += " " + device.getName();
