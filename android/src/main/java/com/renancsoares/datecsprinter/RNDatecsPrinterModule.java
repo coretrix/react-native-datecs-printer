@@ -6,6 +6,8 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -296,6 +298,38 @@ public class RNDatecsPrinterModule extends ReactContextBaseJavaModule implements
 			mPrinter.flush();
 
 			promise.resolve("PRINTED");
+		} catch (Exception e) {
+			promise.reject("Erro: " + e.getMessage());
+		}
+	}
+
+	@ReactMethod
+	public void printReceipt(ReadableArray sections, Promise promise) {
+		String charset = "CP1251";
+		try {
+			for (int sectionIndex = 0; sectionIndex < sections.size(); sectionIndex++) {
+				ReadableMap section = sections.getMap(sectionIndex);
+				if (section == null) {
+					continue;
+				}
+
+				String sectionType = section.hasKey("type") ? section.getString("type") : null;
+				String sectionValue = section.hasKey("value") ? section.getString("value") : "";
+				if (sectionType == null) {
+					continue;
+				}
+
+				if ("text".equalsIgnoreCase(sectionType)) {
+					mPrinter.printTaggedText(sectionValue, charset);
+				} else if ("qr".equalsIgnoreCase(sectionType)) {
+					mPrinter.printQRCode(6, 1, sectionValue);
+					mPrinter.printTaggedText("{br}" + sectionValue + "{br}", charset);
+				}
+			}
+
+			mPrinter.feedPaper(6);
+			mPrinter.flush();
+			promise.resolve("PRINTED_RECEIPT");
 		} catch (Exception e) {
 			promise.reject("Erro: " + e.getMessage());
 		}
